@@ -12,7 +12,7 @@ dp = Dispatcher()
 
 # Foydalanuvchi holatlari
 user_lang = {}   # {user_id: "uz"/"en"/"ru"/"tr"}
-quiz_mode = {}   # {user_id: javob}
+quiz_mode = {}   # {user_id: javob}aaaaaa aha 
 
 # Til va tugmalar matnlari
 texts = {
@@ -191,7 +191,7 @@ async def handle_message(message: types.Message):
             await message.answer(section_texts["Bot"][lang], reply_markup=main_menu_keyboard(lang))
         elif text in ["👑 Admin", "Admin"]:
             await message.answer(
-                f"👑 Admin bo‘limi\nBotning admini: @XAKING_A\nYaratilgan sana: 13-oktyabr-2025",
+                f"👑 Admin bo‘limi\nBotning admini: @Islompro_maxx\nYaratilgan sana: 13-oktyabr-2025",
                 reply_markup=main_menu_keyboard(lang)
             )
         elif text in ["🎵 Musiqa", "Music"]:
@@ -211,5 +211,6 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
 
