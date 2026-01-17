@@ -4,7 +4,7 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
 from aiogram.filters import Command
 
-# Bot tokeningiz
+# Bot tokeningiz tegeg
 TOKEN = "8302735242:AAFsoQ9_eXejAY_L-njkiMpMnjPB_qQTP-I"
 
 bot = Bot(token=TOKEN)
@@ -196,7 +196,7 @@ async def handle_message(message: types.Message):
             )
         elif text in ["🎵 Musiqa", "Music"]:
             await message.answer(
-                f"🎵 Musiqa bo‘limi\nSiz tinglashingiz mumkin bo‘lgan bot: @uz_musiqa_bot",
+                f"🎵 Musiqa bo‘limi\nSiz tinglashingiz mumkin bo‘lgan bot: @tunehuntbot",
                 reply_markup=main_menu_keyboard(lang)
             )
         return
@@ -211,3 +211,4 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
