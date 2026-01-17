@@ -4,8 +4,8 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
 from aiogram.filters import Command
 
-# Bot tokeningiz tegeg
-TOKEN = "8302735242:AAFsoQ9_eXejAY_L-njkiMpMnjPB_qQTP-I"
+# Bot tokeningiz tegeg ddnvs end 
+TOKEN = "8392081820:AAHtYShIYA0a6nBtG5vrzSeG8irX0SK8hSo"
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
@@ -211,4 +211,5 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
