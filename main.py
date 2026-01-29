@@ -1,147 +1,143 @@
+import logging
 from aiogram import Bot, Dispatcher, types
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
-from aiogram.filters import Command
-import asyncio
+from aiogram.utils import executor
 
-TOKEN = "8418792875:AAH6HCuKNcE3dbRaxnvIgdVtIxH6oGwt5Aw"
-ADMIN_USERNAME = "@Islompro_maxx"  # Faqat siz ko‘rasiz
-bot = Bot(token=TOKEN)
-dp = Dispatcher()
+API_TOKEN = "8529829764:AAFAGUUJoHbqUMxK6_Si6nNNKEqez78nR8w"
+CHANNEL_USERNAME = "@kali_linux09"
+ADMIN_USERNAME = "Islompro_maxx"
 
-# --- Klaviatura tugmalari ---
-language_kb = ReplyKeyboardMarkup(
-    keyboard=[
-        [KeyboardButton(text="🇺🇿 O'zbekcha"), KeyboardButton(text="🇬🇧 English")]
-    ],
-    resize_keyboard=True,
-    one_time_keyboard=True
-)
+logging.basicConfig(level=logging.INFO)
 
-menu_kb_uz = ReplyKeyboardMarkup(
-    keyboard=[
-        [KeyboardButton(text="📢 Kanal haqida"), KeyboardButton(text="🤖 Bot haqida")],
-        [KeyboardButton(text="💻 Kod snippetlar"), KeyboardButton(text="📝 Interaktiv test")],
-        [KeyboardButton(text="⚙️ Admin bo‘limi"), KeyboardButton(text="❓ Yordam")],
-        [KeyboardButton(text="🛠 Bot Code")]
-    ],
-    resize_keyboard=True
-)
+bot = Bot(token=API_TOKEN)
+dp = Dispatcher(bot)
 
-menu_kb_en = ReplyKeyboardMarkup(
-    keyboard=[
-        [KeyboardButton(text="📢 About Channel"), KeyboardButton(text="🤖 About Bot")],
-        [KeyboardButton(text="💻 Code Snippets"), KeyboardButton(text="📝 Interactive Quiz")],
-        [KeyboardButton(text="⚙️ Admin Panel"), KeyboardButton(text="❓ Help")],
-        [KeyboardButton(text="🛠 Bot Code")]
-    ],
-    resize_keyboard=True
-)
+users = set()
 
-back_kb_uz = ReplyKeyboardMarkup(
-    keyboard=[[KeyboardButton(text="🔙 Orqaga")]],
-    resize_keyboard=True
-)
+async def add_user(user_id, username):
+    if user_id not in users:
+        users.add(user_id)
 
-back_kb_en = ReplyKeyboardMarkup(
-    keyboard=[[KeyboardButton(text="🔙 Back")]],
-    resize_keyboard=True
-)
+# --- Kanalga obuna tekshirish funksiyasi ---
+async def check_subscription(user_id):
+    try:
+        member = await bot.get_chat_member(CHANNEL_USERNAME, user_id)
+        return member.status not in ["left", "kicked"]
+    except Exception:
+        return False
 
-# --- /start ---
-@dp.message(Command("start"))
-async def start(message: types.Message):
-    await message.answer("Tilni tanlang / Choose your language:", reply_markup=language_kb)
+# --- START handler ---
+@dp.message_handler(commands=["start"])
+async def start_handler(message: types.Message):
+    if not await check_subscription(message.from_user.id):
+        kb = ReplyKeyboardMarkup(resize_keyboard=True)
+        kb.add(KeyboardButton("✅ Obuna bo‘ldim"))
+        await message.answer(
+            f"❌ Bot ishlashi uchun kanalga obuna bo‘ling: https://t.me/{CHANNEL_USERNAME[1:]}\n"
+            "Obuna bo‘lgach quyidagi tugmani bosing",
+            reply_markup=kb
+        )
+        return
 
-# --- Barcha tugmalar uchun yagona handler ---
-@dp.message()
-async def all_handlers(message: types.Message):
+    await add_user(message.from_user.id, message.from_user.username)
+    kb = ReplyKeyboardMarkup(resize_keyboard=True)
+    kb.add(KeyboardButton("📋 Admin menyu"))
+    kb.add(KeyboardButton("💻 Bot haqida"))
+    kb.add(KeyboardButton("📣 Kanalimiz haqida"))
+    await message.answer("✅ Xush kelibsiz!", reply_markup=kb)
+
+# --- Menu handler ---
+@dp.message_handler()
+async def menu_handler(message: types.Message):
+    user_id = message.from_user.id
+
+    # Kanalga obuna bo‘lish sharti
+    if not await check_subscription(user_id):
+        kb = ReplyKeyboardMarkup(resize_keyboard=True)
+        kb.add(KeyboardButton("✅ Obuna bo‘ldim"))
+        await message.answer(
+            f"❌ Bot ishlashi uchun kanalga obuna bo‘ling: https://t.me/{CHANNEL_USERNAME[1:]}\n"
+            "Obuna bo‘lgach tugmani yana bosing",
+            reply_markup=kb
+        )
+        return
+
     text = message.text
 
-    # Til tanlash
-    if text == "🇺🇿 O'zbekcha":
-        await message.answer("Xush kelibsiz DevStream kanaliga! 😊\nMenu:", reply_markup=menu_kb_uz)
-    elif text == "🇬🇧 English":
-        await message.answer("Welcome to DevStream channel! 😊\nMenu:", reply_markup=menu_kb_en)
+    # ✅ Obuna bo‘ldim tugmasi
+    if text == "✅ Obuna bo‘ldim":
+        await message.answer("✅ Obuna tekshirildi! Endi botga kirishingiz mumkin.")
+        kb = ReplyKeyboardMarkup(resize_keyboard=True)
+        kb.add(KeyboardButton("📋 Admin menyu"))
+        kb.add(KeyboardButton("💻 Bot haqida"))
+        kb.add(KeyboardButton("📣 Kanalimiz haqida"))
+        await message.answer("✅ Xush kelibsiz!", reply_markup=kb)
+        await add_user(user_id, message.from_user.username)
+        return
 
-    # Kanal haqida
-    elif text in ["📢 Kanal haqida", "📢 About Channel"]:
-        kanal_text = (
-            "📢 **DevStream kanali** – dasturlash va texnologiya olami.\n\n"
-            "1. Python asoslari\n2. Python kutubxonalari\n3. JavaScript asoslari\n4. HTML/CSS misollar\n"
-            "5. Telegram botlar yaratish\n6. API integratsiyasi\n7. Web scraping misollari\n"
-            "8. GUI yaratish (Tkinter, PyQt)\n9. OOP misollari\n10. Machine Learning asoslari\n"
-            "11. Data visualization (matplotlib, seaborn)\n12. Docker va virtual muhitlar\n13. Git va GitHub tutoriallar\n"
-            "14. Web security asoslari\n15. Foydali resurslar\n\n"
-            f"⚠️ Nimadur muammo bo‘lsa admin bilan bog‘laning: {ADMIN_USERNAME}"
-        )
-        await message.answer(kanal_text, reply_markup=back_kb_uz if "Kanal" in text else back_kb_en)
-
-    # Bot haqida
-    elif text in ["🤖 Bot haqida", "🤖 About Bot"]:
-        bot_text = (
-            "🤖 **DevStream Bot** – sizga kanal va kodlash bo‘yicha ma’lumot beradi.\n\n"
-            "1. Til tanlash\n2. Kanal va bot haqida batafsil ma’lumot\n3. Kod snippetlar\n"
-            "4. Interaktiv testlar\n5. Admin bo‘limi\n6. Bot Code funksiyasi\n7. Orqaga tugma\n"
-            "8. Yordam bo‘limi\n9. FAQ bo‘limi\n10. Mini-proyektlar\n"
-            "11. API misollari\n12. GUI misollari\n13. Web scraping misollari\n"
-            "14. Asinxron dasturlash misollari\n15. Foydali cheat sheet lar"
-        )
-        await message.answer(bot_text, reply_markup=back_kb_uz if "Bot" in text else back_kb_en)
-
-    # Kod snippetlar
-    elif text in ["💻 Kod snippetlar", "💻 Code Snippets"]:
+    # Foydalanuvchi menyusi
+    elif text == "💻 Bot haqida":
+        kb = ReplyKeyboardMarkup(resize_keyboard=True)
+        kb.add(KeyboardButton("🔙 Orqaga qaytish"))
         await message.answer(
-            "**Python misollar:**\n```python\nprint('Hello, DevStream!')\n```\n"
-            "```python\nfor i in range(5):\n    print(i)\n```\n"
-            "```python\ndef add(a,b):\n    return a+b\n```\n\n"
-            "**HTML misollar:**\n```html\n<h1>Welcome</h1>\n<p>Enjoy coding!</p>\n```\n"
-            "**JavaScript misollar:**\n```javascript\nconsole.log('Hello, DevStream!');\n```",
-            reply_markup=back_kb_uz if "Kod" in text else back_kb_en
+            "💻 Bu bot sizga quyidagilarni qilish imkonini beradi:\n\n"
+            "• Admin bilan bog‘lanish\n"
+            "• Foydalanuvchi sonini ko‘rish\n"
+            "• Boshqa foydali bo‘limlar (faqat admin uchun)\n\n"
+            "Bot doimiy yangilanadi va sizga qulay xizmat ko‘rsatadi!",
+            reply_markup=kb
         )
 
-    # Interaktiv test
-    elif text in ["📝 Interaktiv test", "📝 Interactive Quiz"]:
+    elif text == "📣 Kanalimiz haqida":
+        kb = ReplyKeyboardMarkup(resize_keyboard=True)
+        kb.add(KeyboardButton("🔙 Orqaga qaytish"))
         await message.answer(
-            "📝 **Savol:** Pythonda `print()` nima qiladi?\nA) Matnni ekranga chiqaradi\nB) Fayl ochadi\nC) Raqamlarni qo‘shadi",
-            reply_markup=back_kb_uz if "Interaktiv" in text else back_kb_en
+            f"📣 Bizning Telegram kanalimiz: {CHANNEL_USERNAME}\n\n"
+            "Kanalda siz quyidagilarni topishingiz mumkin:\n"
+            "• C++ va Python bot code-lari\n"
+            "• Dasturlash bo‘yicha foydali materiallar\n"
+            "• Yangiliklar va amaliy loyihalar\n"
+            "• Maslahatlar va yordam\n\n"
+            "Obuna bo‘ling va yangi materiallardan birinchi bo‘lib xabardor bo‘ling!",
+            reply_markup=kb
         )
 
-    # Admin bo‘limi
-    elif text in ["⚙️ Admin bo‘limi", "⚙️ Admin Panel"]:
-        user = message.from_user.username
-        if user == "Islompro_maxx":
-            await message.answer(
-                "⚙️ **Admin bo‘limi**\n- Statistikalar\n- Foydalanuvchi xabarlarini ko‘rish\n- Muammo yoki shikoyatlarni tekshirish",
-                reply_markup=back_kb_uz if "Admin" in text else back_kb_en
-            )
-        else:
-            await message.answer("⚠️ Siz admin emassiz!", reply_markup=back_kb_uz if "Admin" in text else back_kb_en)
+    elif text == "🔙 Orqaga qaytish":
+        kb = ReplyKeyboardMarkup(resize_keyboard=True)
+        kb.add(KeyboardButton("📋 Admin menyu"))
+        kb.add(KeyboardButton("💻 Bot haqida"))
+        kb.add(KeyboardButton("📣 Kanalimiz haqida"))
+        await message.answer("✅ Asosiy menyuga qaytdingiz", reply_markup=kb)
 
-    # Bot Code
-    elif text == "🛠 Bot Code":
+    # Admin menyu
+    elif text == "📋 Admin menyu":
+        kb = ReplyKeyboardMarkup(resize_keyboard=True)
+        kb.row(KeyboardButton("1️⃣ Tolov"), KeyboardButton("2️⃣ Menyu"))
+        kb.row(KeyboardButton("3️⃣ Bot code sotib olish"), KeyboardButton("4️⃣ Donat qilish"))
+        kb.row(KeyboardButton("5️⃣ Admin bilan bog‘lanish"), KeyboardButton("🔙 Orqaga qaytish"))
+        await message.answer("📋 Admin menyu:", reply_markup=kb)
+
+    # Admin menyu tugmalari
+    elif text == "1️⃣ Tolov":
+        await message.answer("💳 To‘lov qilish uchun karta raqami:\n\n7777 0111 6318 6748")
+
+    elif text == "2️⃣ Menyu":
+        await message.answer("📂 Menyu bo‘limi ishlayapti")
+
+    elif text == "3️⃣ Bot code sotib olish":
         await message.answer(
-            "🛠 Har xil botlar kodini sotib olmoqchimisiz?\n"
-            f"Unda menga yozing: {ADMIN_USERNAME}",
-            reply_markup=back_kb_uz
+            "💻 Bot code Telegram kanalimizda olasiz:\n"
+            "https://t.me/kali_linux09"
         )
 
-    # Yordam
-    elif text in ["❓ Yordam", "❓ Help"]:
-        await message.answer(
-            "❓ **Yordam bo‘limi:**\n/start – boshlash va til tanlash\nMenu tugmalaridan foydalaning va kerakli bo‘limni tanlang.",
-            reply_markup=back_kb_uz if "Yordam" in text else back_kb_en
-        )
+    elif text == "4️⃣ Donat qilish":
+        await message.answer("💳 Donat qilish uchun karta raqami:\n\n7777 0111 6318 6748")
 
-    # Orqaga
-    elif text in ["🔙 Orqaga", "🔙 Back"]:
-        await message.answer("Menu:", reply_markup=menu_kb_uz if "Orqaga" in text else menu_kb_en)
-
-# --- Ishga tushirish ---
-async def main():
-    await dp.start_polling(bot)
+    elif text == "5️⃣ Admin bilan bog‘lanish":
+        await message.answer(f"📞 Admin bilan bog‘lanish: @{ADMIN_USERNAME}")
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    executor.start_polling(dp, skip_updates=True)
 
 
 
