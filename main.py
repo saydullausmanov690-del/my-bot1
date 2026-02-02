@@ -4,8 +4,8 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from aiogram.utils import executor
 
 API_TOKEN = "8529829764:AAFAGUUJoHbqUMxK6_Si6nNNKEqez78nR8w"
-CHANNEL_USERNAME = "@kali_linux09"
-ADMIN_USERNAME = "Islompro_maxx"
+CHANNEL_USERNAME = ""aaa
+ADMIN_USERNAME = ""aaaa
 
 logging.basicConfig(level=logging.INFO)
 
@@ -138,6 +138,7 @@ async def menu_handler(message: types.Message):
 
 if __name__ == "__main__":
     executor.start_polling(dp, skip_updates=True)
+
 
 
 
